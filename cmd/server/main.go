@@ -4,7 +4,6 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-
 	"github.com/urfave/cli"
 )
 
@@ -15,10 +14,16 @@ var flags = []cli.Flag{
 		Usage:  "enable debug mode, default false",
 	},
 	cli.StringFlag{
-		EnvVar: "GOAHEAD_CONF",
-		Name:   "config, c",
-		Usage:  "config file to startup daemon",
-		Value:  "/etc/goahead.conf",
+		EnvVar: "GOAHEAD_CONFDIR",
+		Name:   "dir, d",
+		Usage:  "dir to load config file of subprocess",
+		Value:  "/etc/goaheadconf.d",
+	},
+	cli.StringFlag{
+		EnvVar: "GOAHEAD_SERVER",
+		Name:   "server",
+		Usage:  "server address to communicate",
+		Value:  "sock:///var/run/goahead.sock",
 	},
 }
 
