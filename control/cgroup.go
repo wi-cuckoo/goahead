@@ -2,7 +2,7 @@ package control
 
 import (
 	"errors"
-	"os/exec"
+	"fmt"
 	"sync"
 
 	"github.com/containerd/cgroups"
@@ -26,13 +26,32 @@ func (c *cgCtrl) Start(u *Unit) error {
 	defer ctrl.Delete()
 
 	// start command
-	cmd := exec.Command()
+	cmd, err := u.Command()
+	if err != nil {
+		return err
+	}
+	if err := cmd.Start(); err != nil {
+		return err
+	}
 
-	return nil
+	pid := cmd.Process.Pid
+	if err := ctrl.Add(cgroups.Process{Pid: pid}); err != nil {
+		return err
+	}
+	u.pid = pid
+	c.Store(u.Name, u)
+
+	return cmd.Wait()
 }
 
 func (c *cgCtrl) Stop(id string) error {
-	return nil
+	el, ok := c.Load(id)
+	if !ok {
+		return fmt.Errorf("%s not found", id)
+	}
+	u, _ := el.(*Unit)
+
+	return u.Kill()
 }
 
 func (c *cgCtrl) Reload(id string) error {
