@@ -9,4 +9,6 @@ type Controller interface {
 	Status(name string) (*Status, error) // check status with name
 
 	Reload(name string) error // reload an unit when changing its config
+
+	Destory() error // Destory self
 }

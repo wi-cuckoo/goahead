@@ -24,12 +24,12 @@ type Unit struct {
 
 // Command return shell command
 func (u *Unit) Command() (*exec.Cmd, error) {
-	args := strings.Split(u.Cmd)
+	args := strings.Split(u.Cmd, " ")
 	if len(args) < 1 {
 		return nil, errors.New("invalid command")
 	}
 
-	cmd := exec.Command(args[0], args[1:])
+	cmd := exec.Command(args[0], args[1:]...)
 	if u.Dir != "" {
 		cmd.Dir = u.Dir
 	}
@@ -44,7 +44,7 @@ func (u *Unit) Kill() error {
 		return errors.New("invalid pid")
 	}
 	if err := syscall.Kill(u.pid, syscall.SIGINT); err != nil {
-		return syscall.Kill(u.pid, syscall.SIGTERM)
+		return syscall.Kill(u.pid, syscall.SIGKILL)
 	}
 	return nil
 }

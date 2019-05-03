@@ -62,12 +62,16 @@ func (c *cgCtrl) Status(id string) (*Status, error) {
 	return nil, nil
 }
 
+func (c *cgCtrl) Destory() error {
+	return c.root.Delete()
+}
+
 // NewController return a cgCtrl instance
 func NewController(root string) (Controller, error) {
 	path := "/" + root
 	ctrl, err := cgroups.New(cgroups.V1, cgroups.StaticPath(path), &specs.LinuxResources{})
 	if err != nil {
-		ctrl, err = cgroups.Load(cgroups.V1, path)
+		ctrl, err = cgroups.Load(cgroups.V1, cgroups.StaticPath(path))
 		if err != nil {
 			return nil, err
 		}

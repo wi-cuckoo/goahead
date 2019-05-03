@@ -1,8 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/urfave/cli"
 )
@@ -31,6 +32,12 @@ func main() {
 	app.Flags = flags
 	app.Action = run
 	if err := app.Run(os.Args); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+		logrus.Error("app.Run err: ", err)
+	}
+}
+
+func init() {
+	if uid := os.Geteuid(); uid != 0 {
+		panic("must be root")
 	}
 }
