@@ -22,12 +22,10 @@ var flags = []cli.Flag{
 	cli.StringFlag{
 		EnvVar: "GOAHEAD_SERVER",
 		Name:   "server",
-		Usage:  "server address to communicate",
-		Value:  "sock:///var/run/goahead.sock",
+		Usage:  "address to serve http, eg: tcp://localhost:5555",
+		Value:  "unix:///var/run/goahead.sock",
 	},
 }
-
-var commands = []cli.Command{}
 
 func main() {
 	app := cli.NewApp()
