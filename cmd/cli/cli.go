@@ -3,7 +3,12 @@ package main
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net"
+	"net/http"
+	"net/url"
 	"os"
+	"time"
 
 	"github.com/urfave/cli"
 )
@@ -26,16 +31,10 @@ var commands = []cli.Command{
 	{
 		Name:  "start",
 		Usage: "start your program",
-		Action: func(c *cli.Context) error {
-			return run(c, "start")
-		},
 	},
 	{
 		Name:  "stop",
 		Usage: "stop your program",
-		Action: func(c *cli.Context) error {
-			return run(c, "stop")
-		},
 	},
 }
 
@@ -46,16 +45,44 @@ func main() {
 	app.Version = "unknown"
 	app.Flags = flags
 	app.Commands = commands
+	app.Action = run
 	if err := app.Run(os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }
 
-func run(c *cli.Context, op string) error {
+func run(c *cli.Context) error {
 	program := c.Args().First()
 	if program == "" {
 		return errors.New("no program defined")
 	}
+
+	_url, err := url.Parse(c.String("server"))
+	if err != nil {
+		return err
+	}
+	fmt.Println(c.String("server"), _url.Scheme)
+
+	clnt := http.Client{
+		Timeout: time.Second * 1,
+		Transport: &http.Transport{
+			Dial: func(network, addr string) (c net.Conn, err error) {
+				fmt.Println(network, addr)
+				return nil, nil
+			},
+			DisableKeepAlives: true,
+		},
+	}
+	req := http.Request{
+		Method: "PUT",
+		URL:    _url,
+	}
+	resp, err := clnt.Do(&req)
+	if err != nil {
+		return err
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(body))
 
 	return nil
 }
