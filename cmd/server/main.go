@@ -19,12 +19,6 @@ var flags = []cli.Flag{
 		Usage:  "dir to load config file of subprocess",
 		Value:  "/etc/goaheadconf.d",
 	},
-	cli.StringFlag{
-		EnvVar: "GOAHEAD_SERVER",
-		Name:   "server",
-		Usage:  "address to serve http, eg: tcp://localhost:5555",
-		Value:  "unix:///var/run/goahead.sock",
-	},
 }
 
 func main() {

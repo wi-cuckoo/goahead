@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
 	"github.com/wi-cuckoo/goahead/control"
-	"github.com/wi-cuckoo/goahead/httpd"
+	"github.com/wi-cuckoo/goahead/server"
 )
 
 // ROOTCGROUP define cgroup hierarchy root
@@ -21,10 +21,10 @@ func run(c *cli.Context) error {
 	}
 	defer ctrl.Destory()
 
-	s := httpd.Server{
+	s := server.SocketServer{
 		Ctrl: ctrl,
 	}
-	if err := s.Start(c.String("server")); err != nil {
+	if err := s.Start(); err != nil {
 		return err
 	}
 	defer s.Stop()
