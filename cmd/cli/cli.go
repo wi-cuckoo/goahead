@@ -1,14 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
-	"net/http"
-	"net/url"
 	"os"
 	"time"
+
+	"github.com/sirupsen/logrus"
+
+	"github.com/wi-cuckoo/goahead/server"
 
 	"github.com/urfave/cli"
 )
@@ -20,10 +23,10 @@ var flags = []cli.Flag{
 		Usage:  "enable debug mode, default false",
 	},
 	cli.StringFlag{
-		EnvVar: "GOAHEAD_SERVER",
-		Name:   "server",
-		Usage:  "address to dail, eg: tcp://localhost:5555",
-		Value:  "unix:///var/run/goahead.sock",
+		EnvVar: "GOAHEAD_SOCK",
+		Name:   "sock",
+		Usage:  "sock address to dail",
+		Value:  "/var/run/goahead.sock",
 	},
 }
 
@@ -31,10 +34,16 @@ var commands = []cli.Command{
 	{
 		Name:  "start",
 		Usage: "start your program",
+		Action: func(c *cli.Context) error {
+			return run(c, "start")
+		},
 	},
 	{
 		Name:  "stop",
 		Usage: "stop your program",
+		Action: func(c *cli.Context) error {
+			return run(c, "stop")
+		},
 	},
 }
 
@@ -45,44 +54,41 @@ func main() {
 	app.Version = "unknown"
 	app.Flags = flags
 	app.Commands = commands
-	app.Action = run
 	if err := app.Run(os.Args); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }
 
-func run(c *cli.Context) error {
+func run(c *cli.Context, cmd string) error {
 	program := c.Args().First()
 	if program == "" {
 		return errors.New("no program defined")
 	}
 
-	_url, err := url.Parse(c.String("server"))
+	con, err := net.DialTimeout("unix", c.GlobalString("sock"), time.Second*2)
 	if err != nil {
 		return err
 	}
-	fmt.Println(c.String("server"), _url.Scheme)
 
-	clnt := http.Client{
-		Timeout: time.Second * 1,
-		Transport: &http.Transport{
-			Dial: func(network, addr string) (c net.Conn, err error) {
-				fmt.Println(network, addr)
-				return nil, nil
-			},
-			DisableKeepAlives: true,
-		},
-	}
-	req := http.Request{
-		Method: "PUT",
-		URL:    _url,
-	}
-	resp, err := clnt.Do(&req)
-	if err != nil {
+	buf, _ := json.Marshal(server.Operation{cmd, program})
+	if _, err := con.Write(buf); err != nil {
 		return err
 	}
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+
+	con.SetReadDeadline(time.Now().Add(time.Second * 10))
+
+	for {
+		var p = make([]byte, 512)
+		n, err := con.Read(p)
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			logrus.Error("con.Read: ", err)
+			break
+		}
+		fmt.Fprintln(os.Stdout, string(p[:n]))
+	}
 
 	return nil
 }
