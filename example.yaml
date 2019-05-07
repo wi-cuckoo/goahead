@@ -1,6 +1,8 @@
-name: yes
 maintainer: wi-cuckoo@github.com
 directory: /tmp
 command: yes my lord
+environments: [
+  "PATH=/tmp"
+]
 cpu-quota: 20
-mem-limit: 2M
+mem-limit: 20

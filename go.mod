@@ -13,4 +13,5 @@ require (
 	github.com/sirupsen/logrus v1.4.1
 	github.com/urfave/cli v1.20.0
 	golang.org/x/sys v0.0.0-20190318195719-6c81ef8f67ca // indirect
+	gopkg.in/yaml.v2 v2.2.2
 )
