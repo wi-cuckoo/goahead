@@ -1,0 +1,6 @@
+name: yes
+maintainer: wi-cuckoo@github.com
+directory: /tmp
+command: yes my lord
+cpu-quota: 20
+mem-limit: 2M

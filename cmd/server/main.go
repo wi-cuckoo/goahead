@@ -17,7 +17,7 @@ var flags = []cli.Flag{
 		EnvVar: "GOAHEAD_CONFDIR",
 		Name:   "dir, d",
 		Usage:  "dir to load config file of subprocess",
-		Value:  "/etc/goaheadconf.d",
+		Value:  "/etc/goahead.d",
 	},
 }
 

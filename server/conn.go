@@ -3,6 +3,7 @@ package server
 import (
 	"encoding/json"
 	"net"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wi-cuckoo/goahead/control"
@@ -56,10 +57,14 @@ func (s *SocketServer) handleConn(con net.Conn) {
 	switch op.Command {
 	case "start":
 		// start a program
-		con.Write([]byte("start done"))
+		con.Write([]byte("starting " + op.Program))
+		<-time.After(time.Second * 3)
+		con.Write([]byte("started " + op.Program))
 	case "stop":
 		// stop a program
-		con.Write([]byte("stop done"))
+		con.Write([]byte("stopping " + op.Program))
+		<-time.After(time.Second * 3)
+		con.Write([]byte("stopped " + op.Program))
 	default:
 		// unknown
 		con.Write([]byte("unknown command"))
