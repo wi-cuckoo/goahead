@@ -77,9 +77,10 @@ func run(c *cli.Context, cmd string) error {
 
 	con.SetReadDeadline(time.Now().Add(time.Second * 10))
 
+	// br := bufio.NewReader(con)
 	for {
-		var p = make([]byte, 512)
-		n, err := con.Read(p)
+		buf := make([]byte, 512)
+		n, err := con.Read(buf)
 		if err == io.EOF {
 			break
 		}
@@ -87,7 +88,7 @@ func run(c *cli.Context, cmd string) error {
 			logrus.Error("con.Read: ", err)
 			break
 		}
-		fmt.Fprintln(os.Stdout, string(p[:n]))
+		fmt.Fprintln(os.Stdout, n, string(buf[:n]))
 	}
 
 	return nil

@@ -19,7 +19,14 @@ func (c *cgCtrl) Start(u *Unit) error {
 		return errors.New("exist, use reload maybe")
 	}
 
-	ctrl, err := c.root.New(u.Name, &specs.LinuxResources{})
+	ctrl, err := c.root.New(u.Name, &specs.LinuxResources{
+		CPU: &specs.LinuxCPU{
+			Quota: &u.Res.CPUQuota,
+		},
+		Memory: &specs.LinuxMemory{
+			Limit: &u.Res.MemLimit,
+		},
+	})
 	if err != nil {
 		return err
 	}

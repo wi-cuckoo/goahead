@@ -63,7 +63,7 @@ func (s *SocketServer) handleConn(con net.Conn) {
 	case "stop":
 		// stop a program
 		con.Write([]byte("stopping " + op.Program))
-		<-time.After(time.Second * 3)
+		s.Ctrl.Stop(op.Program)
 		con.Write([]byte("stopped " + op.Program))
 	default:
 		// unknown
@@ -105,6 +105,7 @@ func (s *SocketServer) startProgram(con net.Conn, name string) {
 		}
 	}()
 
+	con.Write([]byte("starting " + name))
 	select {
 	case <-errCh:
 		con.Write([]byte(err.Error()))
