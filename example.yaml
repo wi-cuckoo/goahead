@@ -1,4 +1,5 @@
-maintainer: wi-cuckoo@github.com
+owner: wi-cuckoo@github.com
+description: a good program
 directory: /tmp
 command: yes my lord
 environments: [

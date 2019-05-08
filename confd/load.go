@@ -39,6 +39,18 @@ func NewStore(dir string) (*Store, error) {
 	}, nil
 }
 
+// GetAllConfig ...
+func (s *Store) GetAllConfig() []*ProgramConfig {
+	s.mux.RLock()
+	defer s.mux.Unlock()
+
+	cfgs := make([]*ProgramConfig, 0, len(s.rel))
+	for _, cfg := range s.rel {
+		cfgs = append(cfgs, cfg)
+	}
+	return cfgs
+}
+
 // GetConfig by program name
 func (s *Store) GetConfig(program string) (*ProgramConfig, error) {
 	filename := filepath.Join(s.dir, program+".yaml")

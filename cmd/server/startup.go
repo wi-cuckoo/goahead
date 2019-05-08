@@ -7,6 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"github.com/wi-cuckoo/goahead/confd"
 	"github.com/wi-cuckoo/goahead/control"
 	"github.com/wi-cuckoo/goahead/server"
 )
@@ -21,7 +22,13 @@ func run(c *cli.Context) error {
 	}
 	defer ctrl.Destory()
 
+	conf, err := confd.NewStore(c.String("dir"))
+	if err != nil {
+		return err
+	}
+
 	s := server.SocketServer{
+		Conf: conf,
 		Ctrl: ctrl,
 	}
 	if err := s.Start(); err != nil {
