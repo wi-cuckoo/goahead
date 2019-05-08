@@ -2,16 +2,9 @@ package confd
 
 import (
 	"io/ioutil"
-	"sync"
 
 	yaml "gopkg.in/yaml.v2"
 )
-
-// Store relationship between file and its content
-type Store struct {
-	mux sync.Mutex
-	rel map[string]*ProgramConfig
-}
 
 // ProgramConfig ...
 type ProgramConfig struct {
@@ -22,6 +15,7 @@ type ProgramConfig struct {
 	Envs       []string `yaml:"environments"`
 	CPUQuota   int64    `yaml:"cpu-quota"`
 	MemLimit   int64    `yaml:"mem-limit"`
+	modify     int64    `yaml:"_"` // modify time
 }
 
 func parseYamlFile(filename string) (*ProgramConfig, error) {
