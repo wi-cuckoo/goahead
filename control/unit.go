@@ -17,7 +17,7 @@ type Unit struct {
 	Cmd  string
 	Envs []string
 
-	Res Resource
+	Res *Resource
 
 	pid int
 }

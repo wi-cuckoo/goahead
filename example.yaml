@@ -6,4 +6,4 @@ environments: [
   "PATH=/tmp"
 ]
 cpu-quota: 20
-mem-limit: 20
+mem-limit: 1M

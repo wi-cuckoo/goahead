@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -17,11 +18,6 @@ import (
 )
 
 var flags = []cli.Flag{
-	cli.BoolFlag{
-		EnvVar: "GOAHEAD_DEBUG",
-		Name:   "debug",
-		Usage:  "enable debug mode, default false",
-	},
 	cli.StringFlag{
 		EnvVar: "GOAHEAD_SOCK",
 		Name:   "sock",
@@ -77,10 +73,9 @@ func run(c *cli.Context, cmd string) error {
 
 	con.SetReadDeadline(time.Now().Add(time.Second * 10))
 
-	// br := bufio.NewReader(con)
+	br := bufio.NewReader(con)
 	for {
-		buf := make([]byte, 512)
-		n, err := con.Read(buf)
+		line, err := br.ReadString('\n')
 		if err == io.EOF {
 			break
 		}
@@ -88,7 +83,7 @@ func run(c *cli.Context, cmd string) error {
 			logrus.Error("con.Read: ", err)
 			break
 		}
-		fmt.Fprintln(os.Stdout, n, string(buf[:n]))
+		fmt.Fprintln(os.Stdout, line)
 	}
 
 	return nil
@@ -96,6 +91,6 @@ func run(c *cli.Context, cmd string) error {
 
 func init() {
 	if uid := os.Geteuid(); uid != 0 {
-		// panic("must be root")
+		panic("must be root")
 	}
 }

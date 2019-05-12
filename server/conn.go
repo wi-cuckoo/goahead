@@ -92,8 +92,8 @@ func (s *SocketServer) startProgram(con net.Conn, name string) {
 		Dir:   cfg.Directory,
 		Envs:  cfg.Envs,
 		Cmd:   cfg.Command,
-		Res: control.Resource{
-			CPUQuota: cfg.CPUQuota,
+		Res: &control.Resource{
+			CPUQuota: cfg.CPUQuota * 1000,
 			MemLimit: cfg.MemLimit,
 		},
 	}
