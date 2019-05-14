@@ -10,11 +10,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/wi-cuckoo/goahead/server"
-
 	"github.com/urfave/cli"
+	"github.com/wi-cuckoo/goahead"
 )
 
 var flags = []cli.Flag{
@@ -66,7 +63,7 @@ func run(c *cli.Context, cmd string) error {
 		return err
 	}
 
-	buf, _ := json.Marshal(server.Operation{cmd, program})
+	buf, _ := json.Marshal(goahead.Operation{cmd, program})
 	if _, err := con.Write(buf); err != nil {
 		return err
 	}
@@ -76,14 +73,14 @@ func run(c *cli.Context, cmd string) error {
 	br := bufio.NewReader(con)
 	for {
 		line, err := br.ReadString('\n')
+		if err != nil && err != io.EOF {
+			fmt.Fprint(os.Stderr, err.Error())
+			break
+		}
+		fmt.Fprint(os.Stdout, line)
 		if err == io.EOF {
 			break
 		}
-		if err != nil {
-			logrus.Error("con.Read: ", err)
-			break
-		}
-		fmt.Fprintln(os.Stdout, line)
 	}
 
 	return nil

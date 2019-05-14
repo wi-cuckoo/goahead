@@ -2,15 +2,22 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net"
+	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wi-cuckoo/goahead"
 	"github.com/wi-cuckoo/goahead/confd"
 	"github.com/wi-cuckoo/goahead/control"
 )
 
 const sock = "/var/run/goahead.sock"
+
+func init() {
+	os.Remove(sock)
+}
 
 // SocketServer to listen
 type SocketServer struct {
@@ -46,14 +53,14 @@ func (s *SocketServer) handleConn(con net.Conn) {
 	var buf = make([]byte, 512)
 	n, err := con.Read(buf)
 	if err != nil {
-		con.Write([]byte(err.Error()))
+		writelne(con, err)
 		return
 	}
 	logrus.Info("recv from conn: ", string(buf[:n]))
 
-	op := Operation{}
+	op := goahead.Operation{}
 	if err := json.Unmarshal(buf[:n], &op); err != nil {
-		con.Write([]byte("invalid command"))
+		writelne(con, err)
 		return
 	}
 	switch op.Command {
@@ -62,12 +69,10 @@ func (s *SocketServer) handleConn(con net.Conn) {
 		s.startProgram(con, op.Program)
 	case "stop":
 		// stop a program
-		con.Write([]byte("stopping " + op.Program))
-		s.Ctrl.Stop(op.Program)
-		con.Write([]byte("stopped " + op.Program))
+		s.stopProgram(con, op.Program)
 	default:
 		// unknown
-		con.Write([]byte("unknown command"))
+		writelne(con, errors.New("invalid command"))
 	}
 	logrus.Info("done: ", op.String())
 }
@@ -82,7 +87,7 @@ func (s *SocketServer) Stop() {
 func (s *SocketServer) startProgram(con net.Conn, name string) {
 	cfg, err := s.Conf.GetConfig(name)
 	if err != nil {
-		con.Write([]byte(err.Error()))
+		writelne(con, err)
 		return
 	}
 	unit := control.Unit{
@@ -93,8 +98,8 @@ func (s *SocketServer) startProgram(con net.Conn, name string) {
 		Envs:  cfg.Envs,
 		Cmd:   cfg.Command,
 		Res: &control.Resource{
-			CPUQuota: cfg.CPUQuota * 1000,
-			MemLimit: cfg.MemLimit,
+			CPUQuota: cfg.CPULimit.Int64(),
+			MemLimit: cfg.MemLimit.Int64(),
 		},
 	}
 
@@ -105,11 +110,19 @@ func (s *SocketServer) startProgram(con net.Conn, name string) {
 		}
 	}()
 
-	con.Write([]byte("starting " + name))
+	writeln(con, "goahead starting "+name)
 	select {
-	case <-errCh:
-		con.Write([]byte(err.Error()))
+	case err := <-errCh:
+		writelne(con, err)
 	case <-time.After(time.Second * 3):
-		con.Write([]byte("started " + name))
+		writeln(con, "goahead started "+name)
 	}
+}
+
+func (s *SocketServer) stopProgram(con net.Conn, name string) {
+	if err := s.Ctrl.Stop(name); err != nil {
+		writelne(con, err)
+		return
+	}
+	writeln(con, "goahead stopped "+name)
 }

@@ -2,10 +2,42 @@ package confd
 
 import (
 	"io/ioutil"
+	"strconv"
+	"strings"
 
 	"github.com/docker/go-units"
 	yaml "gopkg.in/yaml.v2"
 )
+
+// Percent %
+type Percent int64
+
+// Int64 return its value
+func (p Percent) Int64() int64 {
+	return int64(p)
+}
+
+// MarshalYAML implements the Marshaller interface.
+func (p Percent) MarshalYAML() (interface{}, error) {
+	return p, nil
+}
+
+// UnmarshalYAML implements the Unmarshaller interface.
+func (p *Percent) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	var percent string
+	if err := unmarshal(&percent); err != nil {
+		return err
+	}
+
+	percent = strings.TrimSuffix(percent, "%")
+	val, err := strconv.ParseInt(percent, 10, 32)
+	if err != nil {
+		return err
+	}
+	*p = Percent(val * 1000)
+
+	return nil
+}
 
 // SpaceSize for disk, memory
 type SpaceSize int64
@@ -44,7 +76,7 @@ type ProgramConfig struct {
 	Directory string    `yaml:"directory"`
 	Command   string    `yaml:"command"`
 	Envs      []string  `yaml:"environments"`
-	CPUQuota  int64     `yaml:"cpu-quota"`
+	CPULimit  Percent   `yaml:"cpu-limit"`
 	MemLimit  SpaceSize `yaml:"mem-limit"`
 	modify    int64     `yaml:"_"` // modify time
 }

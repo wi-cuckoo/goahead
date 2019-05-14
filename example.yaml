@@ -5,5 +5,5 @@ command: yes my lord
 environments: [
   "PATH=/tmp"
 ]
-cpu-quota: 20
+cpu-limit: 20%
 mem-limit: 1M

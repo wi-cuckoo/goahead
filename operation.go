@@ -1,4 +1,4 @@
-package server
+package goahead
 
 // Operation ...
 type Operation struct {
