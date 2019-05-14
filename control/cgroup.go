@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/containerd/cgroups"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
@@ -38,8 +39,12 @@ func (c *cgCtrl) Start(u *Unit) error {
 	if err := ctrl.Add(cgroups.Process{Pid: pid}); err != nil {
 		return err
 	}
+	// 保存状态
+	u.up = time.Now()
 	u.pid = pid
+	u.ctrl = ctrl
 	c.Store(u.Name, u)
+	defer c.Delete(u.Name)
 
 	return cmd.Wait()
 }
@@ -59,7 +64,24 @@ func (c *cgCtrl) Reload(id string) error {
 }
 
 func (c *cgCtrl) Status(id string) (*Status, error) {
-	return nil, nil
+	el, ok := c.Load(id)
+	if !ok {
+		return nil, fmt.Errorf("%s not found", id)
+	}
+	u, _ := el.(*Unit)
+
+	metrics, err := u.ctrl.Stat(cgroups.IgnoreNotExist)
+	if err != nil {
+		return nil, err
+	}
+
+	cpu, mem := metrics.CPU, metrics.Memory
+	return &Status{
+		Uptime: time.Since(u.up),
+		PID:    u.pid,
+		CPU:    cpu.Usage.String(),
+		Mem:    mem.Usage.String(),
+	}, nil
 }
 
 func (c *cgCtrl) Destory() error {

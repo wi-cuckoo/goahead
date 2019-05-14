@@ -5,6 +5,9 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
+	"time"
+
+	"github.com/containerd/cgroups"
 )
 
 // Unit for a process
@@ -19,7 +22,9 @@ type Unit struct {
 
 	Res *Resource
 
-	pid int
+	up   time.Time
+	ctrl cgroups.Cgroup
+	pid  int
 }
 
 // Command return shell command

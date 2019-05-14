@@ -38,6 +38,13 @@ var commands = []cli.Command{
 			return run(c, "stop")
 		},
 	},
+	{
+		Name:  "status",
+		Usage: "status your program",
+		Action: func(c *cli.Context) error {
+			return run(c, "status")
+		},
+	},
 }
 
 func main() {

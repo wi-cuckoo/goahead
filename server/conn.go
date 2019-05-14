@@ -70,6 +70,8 @@ func (s *SocketServer) handleConn(con net.Conn) {
 	case "stop":
 		// stop a program
 		s.stopProgram(con, op.Program)
+	case "status":
+		s.statusProgram(con, op.Program)
 	default:
 		// unknown
 		writelne(con, errors.New("invalid command"))
@@ -125,4 +127,13 @@ func (s *SocketServer) stopProgram(con net.Conn, name string) {
 		return
 	}
 	writeln(con, "goahead stopped "+name)
+}
+
+func (s *SocketServer) statusProgram(con net.Conn, name string) {
+	status, err := s.Ctrl.Status(name)
+	if err != nil {
+		writelne(con, err)
+		return
+	}
+	writeln(con, status.String())
 }
