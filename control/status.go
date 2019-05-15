@@ -3,12 +3,11 @@ package control
 import (
 	"bytes"
 	"text/template"
-	"time"
 )
 
 // Status for an unit
 type Status struct {
-	Uptime time.Duration
+	Uptime string
 	PID    int
 	CPU    string
 	Mem    string
@@ -16,7 +15,7 @@ type Status struct {
 
 var statsTmpl = `
 uptime		: {{.Uptime}}
-pid			: {{.PID}}
+pid		: {{.PID}}
 cpu usage	: {{.CPU}}
 mem usage	: {{.Mem}}
 `

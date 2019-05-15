@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/containerd/cgroups"
+	"github.com/docker/go-units"
 	specs "github.com/opencontainers/runtime-spec/specs-go"
 )
 
@@ -77,14 +78,20 @@ func (c *cgCtrl) Status(id string) (*Status, error) {
 
 	cpu, mem := metrics.CPU, metrics.Memory
 	return &Status{
-		Uptime: time.Since(u.up),
+		Uptime: units.HumanDuration(time.Since(u.up)),
 		PID:    u.pid,
-		CPU:    cpu.Usage.String(),
-		Mem:    mem.Usage.String(),
+		CPU:    cpu.String(),
+		Mem:    units.HumanSize(float64(mem.Usage.Usage)),
 	}, nil
 }
 
 func (c *cgCtrl) Destory() error {
+	c.Range(func(key, val interface{}) bool {
+		if u, ok := val.(*Unit); ok {
+			u.Kill()
+		}
+		return true
+	})
 	return c.root.Delete()
 }
 
