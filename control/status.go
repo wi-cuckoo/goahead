@@ -2,6 +2,7 @@ package control
 
 import (
 	"bytes"
+	"strings"
 	"text/template"
 )
 
@@ -28,5 +29,5 @@ func (s Status) String() string {
 	var buf = new(bytes.Buffer)
 	tmpl.Execute(buf, s)
 
-	return buf.String()
+	return strings.TrimSpace(buf.String())
 }

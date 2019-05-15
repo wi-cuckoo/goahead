@@ -53,3 +53,8 @@ func (u *Unit) Kill() error {
 	}
 	return nil
 }
+
+// Validate check unit
+func (u *Unit) Validate() error {
+	return nil
+}

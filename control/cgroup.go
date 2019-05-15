@@ -77,10 +77,11 @@ func (c *cgCtrl) Status(id string) (*Status, error) {
 	}
 
 	cpu, mem := metrics.CPU, metrics.Memory
+	cpuUsage := float64(cpu.Usage.Total) / float64(cpu.Throttling.Periods) / 1000000
 	return &Status{
 		Uptime: units.HumanDuration(time.Since(u.up)),
 		PID:    u.pid,
-		CPU:    cpu.String(),
+		CPU:    fmt.Sprintf("%.2f%%", cpuUsage),
 		Mem:    units.HumanSize(float64(mem.Usage.Usage)),
 	}, nil
 }
