@@ -1,0 +1,15 @@
+//  protoc -I ./pb ./pb/*.proto --go_out=plugins=grpc:./pb
+syntax = "proto3";
+
+package pb;
+
+enum Op {
+    STATUS  = 0;
+    START   = 1;
+    STOP    = 2;
+}
+
+message Instruct {
+    Op      op  = 1;
+    string app  = 2; // optional
+}
