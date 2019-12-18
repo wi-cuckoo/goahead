@@ -24,7 +24,7 @@ var flags = []cli.Flag{
 func main() {
 	app := cli.NewApp()
 	app.Name = "goahead"
-	app.Usage = "control your application, like systemd"
+	app.Usage = "control your application, like supervisor"
 	app.Version = "unknown"
 	app.Flags = flags
 	app.Action = run

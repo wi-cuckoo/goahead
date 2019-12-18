@@ -1,8 +1,6 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,7 +9,8 @@ import (
 	"time"
 
 	"github.com/urfave/cli"
-	"github.com/wi-cuckoo/goahead"
+	"github.com/wi-cuckoo/goahead/pb"
+	"github.com/wi-cuckoo/goahead/util"
 )
 
 var flags = []cli.Flag{
@@ -28,21 +27,21 @@ var commands = []cli.Command{
 		Name:  "start",
 		Usage: "start your program",
 		Action: func(c *cli.Context) error {
-			return run(c, "start")
+			return run(c, pb.Op_START)
 		},
 	},
 	{
 		Name:  "stop",
 		Usage: "stop your program",
 		Action: func(c *cli.Context) error {
-			return run(c, "stop")
+			return run(c, pb.Op_STOP)
 		},
 	},
 	{
 		Name:  "status",
 		Usage: "status your program",
 		Action: func(c *cli.Context) error {
-			return run(c, "status")
+			return run(c, pb.Op_STATUS)
 		},
 	},
 }
@@ -59,7 +58,7 @@ func main() {
 	}
 }
 
-func run(c *cli.Context, cmd string) error {
+func run(c *cli.Context, op pb.Op) error {
 	program := c.Args().First()
 	if program == "" {
 		return errors.New("no program defined")
@@ -69,28 +68,22 @@ func run(c *cli.Context, cmd string) error {
 	if err != nil {
 		return err
 	}
+	defer con.Close()
 
-	buf, _ := json.Marshal(goahead.Operation{cmd, program})
-	if _, err := con.Write(buf); err != nil {
+	encoder := util.NewEncoder(con, 1<<9)
+	if err := encoder.EncodeInstruct(&pb.Instruct{
+		Op:  op,
+		App: program,
+	}); err != nil {
 		return err
 	}
-
+	if err := encoder.Flush(); err != nil {
+		return err
+	}
 	con.SetReadDeadline(time.Now().Add(time.Second * 10))
 
-	br := bufio.NewReader(con)
-	for {
-		line, err := br.ReadString('\n')
-		if err != nil && err != io.EOF {
-			fmt.Fprint(os.Stderr, err.Error())
-			break
-		}
-		fmt.Fprint(os.Stdout, line)
-		if err == io.EOF {
-			break
-		}
-	}
-
-	return nil
+	_, err = io.Copy(os.Stdout, con)
+	return err
 }
 
 func init() {

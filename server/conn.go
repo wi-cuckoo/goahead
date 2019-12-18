@@ -1,16 +1,15 @@
 package server
 
 import (
-	"encoding/json"
-	"errors"
 	"net"
 	"os"
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wi-cuckoo/goahead"
 	"github.com/wi-cuckoo/goahead/confd"
 	"github.com/wi-cuckoo/goahead/control"
+	"github.com/wi-cuckoo/goahead/pb"
+	"github.com/wi-cuckoo/goahead/util"
 )
 
 const sock = "/var/run/goahead.sock"
@@ -42,7 +41,6 @@ func (s *SocketServer) Start() error {
 			}
 			go s.handleConn(con)
 		}
-
 	}()
 
 	return nil
@@ -50,33 +48,27 @@ func (s *SocketServer) Start() error {
 
 func (s *SocketServer) handleConn(con net.Conn) {
 	defer con.Close()
-	var buf = make([]byte, 512)
-	n, err := con.Read(buf)
+	decoder := util.NewDecoder(con, 1<<9)
+	in, err := decoder.DecodeInstruct()
 	if err != nil {
 		writelne(con, err)
 		return
 	}
-	logrus.Info("recv from conn: ", string(buf[:n]))
-
-	op := goahead.Operation{}
-	if err := json.Unmarshal(buf[:n], &op); err != nil {
-		writelne(con, err)
-		return
-	}
-	switch op.Command {
-	case "start":
+	logrus.Info("recv instruct:", in.String())
+	switch in.Op {
+	case pb.Op_START:
 		// start a program
-		s.startProgram(con, op.Program)
-	case "stop":
+		s.startProgram(con, in.App)
+	case pb.Op_STOP:
 		// stop a program
-		s.stopProgram(con, op.Program)
-	case "status":
-		s.statusProgram(con, op.Program)
+		s.stopProgram(con, in.App)
+	case pb.Op_STATUS:
+		s.statusProgram(con, in.App)
 	default:
 		// unknown
-		writelne(con, errors.New("invalid command"))
+		writeln(con, "invalid command")
 	}
-	logrus.Info("done: ", op.String())
+	logrus.Infof("%s %s done", in.Op, in.App)
 }
 
 // Stop ...
@@ -89,7 +81,7 @@ func (s *SocketServer) Stop() {
 func (s *SocketServer) startProgram(con net.Conn, name string) {
 	cfg, err := s.Conf.GetConfig(name)
 	if err != nil {
-		writelne(con, err)
+		writeln(con, err.Error())
 		return
 	}
 	unit := control.Unit{
