@@ -23,11 +23,21 @@ var flags = []cli.Flag{
 	},
 }
 
+var (
+	// Revision ...
+	revision string
+	// Version ...
+	version string
+)
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "goahead"
 	app.Usage = "control your application, like supervisor"
-	app.Version = "unknown"
+	app.Version = version
+	cli.VersionPrinter = func(c *cli.Context) {
+		fmt.Printf("version=%s revision=%s\n", c.App.Version, revision)
+	}
 	app.Flags = flags
 	app.Action = run
 	if err := app.Run(os.Args); err != nil {
@@ -39,5 +49,5 @@ func init() {
 	if uid := os.Geteuid(); uid != 0 {
 		panic("must be root")
 	}
-	fmt.Fprintln(os.Stdout, goahead.Banner+"version: v1.0\n")
+	fmt.Fprintf(os.Stdout, "%s\t%s\n", goahead.Banner, version)
 }

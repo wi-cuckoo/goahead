@@ -46,11 +46,21 @@ var commands = []cli.Command{
 	},
 }
 
+var (
+	// Revision ...
+	revision string
+	// Version ...
+	version string
+)
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "goahead-cli"
-	app.Usage = "control your application, like systemctl"
-	app.Version = "unknown"
+	app.Usage = "control your application, like supervisor"
+	app.Version = version
+	cli.VersionPrinter = func(c *cli.Context) {
+		fmt.Printf("version=%s revision=%s\n", c.App.Version, revision)
+	}
 	app.Flags = flags
 	app.Commands = commands
 	if err := app.Run(os.Args); err != nil {
