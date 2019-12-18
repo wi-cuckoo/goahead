@@ -36,6 +36,8 @@ func run(c *cli.Context) error {
 	}
 	defer s.Stop()
 
+	logrus.Info("goahead server started, listening system signal...")
+
 	exit := make(chan os.Signal, 1)
 	signal.Notify(exit, syscall.SIGINT, syscall.SIGHUP, syscall.SIGQUIT)
 	<-exit

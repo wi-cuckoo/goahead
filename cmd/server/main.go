@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli"
+	"github.com/wi-cuckoo/goahead"
 )
 
 var flags = []cli.Flag{
@@ -37,4 +39,5 @@ func init() {
 	if uid := os.Geteuid(); uid != 0 {
 		panic("must be root")
 	}
+	fmt.Fprintln(os.Stdout, goahead.Banner+"version: v1.0\n")
 }

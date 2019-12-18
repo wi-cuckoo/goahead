@@ -51,7 +51,7 @@ func (s *SocketServer) handleConn(con net.Conn) {
 	decoder := util.NewDecoder(con, 1<<9)
 	in, err := decoder.DecodeInstruct()
 	if err != nil {
-		writelne(con, err)
+		writeln(con, err.Error())
 		return
 	}
 	logrus.Info("recv instruct:", in.String())
@@ -107,7 +107,7 @@ func (s *SocketServer) startProgram(con net.Conn, name string) {
 	writeln(con, "goahead starting "+name)
 	select {
 	case err := <-errCh:
-		writelne(con, err)
+		writeln(con, err.Error())
 	case <-time.After(time.Second * 3):
 		writeln(con, "goahead started "+name)
 	}
@@ -115,7 +115,7 @@ func (s *SocketServer) startProgram(con net.Conn, name string) {
 
 func (s *SocketServer) stopProgram(con net.Conn, name string) {
 	if err := s.Ctrl.Stop(name); err != nil {
-		writelne(con, err)
+		writeln(con, err.Error())
 		return
 	}
 	writeln(con, "goahead stopped "+name)
@@ -124,7 +124,7 @@ func (s *SocketServer) stopProgram(con net.Conn, name string) {
 func (s *SocketServer) statusProgram(con net.Conn, name string) {
 	status, err := s.Ctrl.Status(name)
 	if err != nil {
-		writelne(con, err)
+		writeln(con, err.Error())
 		return
 	}
 	writeln(con, status.String())
